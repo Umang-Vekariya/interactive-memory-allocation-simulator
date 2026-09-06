@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Memory Allocation Simulator</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- =====================================================
+         APPLICATION HEADER
+         ===================================================== -->
+
+    <header class="app-header">
+
+        <div class="brand">
+            <div class="brand-mark">M</div>
+
+            <div>
+                <h1>Memory Allocation Simulator</h1>
+                <p>Operating Systems • Memory Management</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <span class="status-indicator">
+                <span class="status-dot"></span>
+                Simulation Active
+            </span>
+
+            <button
+                id="resetButton"
+                class="button button-danger"
+            >
+                Reset Simulation
+            </button>
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         MAIN APPLICATION
+         ===================================================== -->
+
+    <main class="app-container">
+
+        <!-- =================================================
+             CONTROL BAR
+             ================================================= -->
+
+        <section class="control-bar">
+
+        <div class="control-group">
+
+            <label for="algorithmSelect">
+                Allocation Algorithm
+            </label>
+
+            <select id="algorithmSelect">
+                <option value="first-fit">First Fit</option>
+                <option value="best-fit">Best Fit</option>
+                <option value="worst-fit">Worst Fit</option>
+            </select>
+
+        </div>
+
+
+        <div class="control-group memory-config-group">
+
+            <label for="memoryBlocks">
+                Memory Blocks (MB)
+            </label>
+
+            <input
+                type="text"
+                id="memoryBlocks"
+                placeholder="500, 800, 300, 1200"
+                value="500, 800, 300, 1200"
+            >
+
+        </div>
+
+
+        <div class="control-group">
+
+            <label>
+                Actions
+            </label>
+
+            <div class="control-actions">
+
+                <button
+                    id="configureMemoryButton"
+                    class="button button-primary"
+                >
+                    Configure Memory
+                </button>
+
+                <button
+                    id="loadSampleButton"
+                    class="button button-secondary"
+                >
+                    Load Sample
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+        <!-- =================================================
+             DASHBOARD
+             ================================================= -->
+
+        <section class="dashboard-grid">
+
+            <div class="stat-card">
+                <span class="stat-label">Total Memory</span>
+                <strong id="totalMemory">0 MB</strong>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-label">Allocated Memory</span>
+                <strong id="allocatedMemory">0 MB</strong>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-label">Free Memory</span>
+                <strong id="freeMemory">0 MB</strong>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-label">Utilization</span>
+                <strong id="utilization">0%</strong>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-label">Processes</span>
+                <strong id="processCount">0</strong>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-label">Free Partitions</span>
+                <strong id="freeBlockCount">0</strong>
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             MAIN GRID
+             ================================================= -->
+
+        <section class="main-grid">
+
+
+            <!-- =============================================
+                 PROCESS MANAGEMENT
+                 ============================================= -->
+
+            <div class="panel process-panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <h2>Process Management</h2>
+                        <p>Create and allocate simulated processes.</p>
+                    </div>
+
+                </div>
+
+
+                <form id="processForm">
+
+                    <div class="form-row">
+
+                        <div class="form-field">
+
+                            <label for="processId">
+                                Process ID
+                            </label>
+
+                            <input
+                                type="text"
+                                id="processId"
+                                placeholder="P1"
+                                maxlength="10"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-field">
+
+                            <label for="processName">
+                                Process Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="processName"
+                                placeholder="Chrome"
+                                maxlength="30"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label for="memoryRequest">
+                            Memory Requirement (MB)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="memoryRequest"
+                            placeholder="500"
+                            min="1"
+                            step="1"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="button button-primary button-full"
+                    >
+                        Create Process
+                    </button>
+
+                </form>
+
+
+                <div class="divider"></div>
+
+
+                <div class="section-subtitle">
+                    Quick Allocation
+                </div>
+
+                <div class="step-mode">
+
+                    <div class="step-mode-header">
+
+                        <div>
+                            <span class="step-mode-title">
+                                Step-by-Step Mode
+                            </span>
+
+                            <span class="step-mode-description">
+                                Walk through the allocation decision one step at a time.
+                            </span>
+                        </div>
+
+                        <label class="toggle">
+
+                            <input
+                                type="checkbox"
+                                id="stepModeToggle"
+                            >
+
+                            <span class="toggle-slider"></span>
+
+                        </label>
+
+                    </div>
+
+
+                    <div
+                        id="stepControls"
+                        class="step-controls hidden"
+                    >
+
+                        <div class="step-progress">
+
+                            <span id="stepProgress">
+                                Step 0 / 0
+                            </span>
+
+                        </div>
+
+
+                        <div class="step-buttons">
+
+                            <button
+                                id="previousStepButton"
+                                class="button button-secondary button-small"
+                                disabled
+                            >
+                                Previous
+                            </button>
+
+                            <button
+                                id="nextStepButton"
+                                class="button button-primary button-small"
+                                disabled
+                            >
+                                Next
+                            </button>
+
+                            <button
+                                id="runAllButton"
+                                class="button button-secondary button-small"
+                                disabled
+                            >
+                                Run All
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="allocation-controls">
+
+                    <select id="allocationProcessSelect">
+                        <option value="">
+                            Select process
+                        </option>
+                    </select>
+
+                    <button
+                        id="allocateButton"
+                        class="button button-primary"
+                    >
+                        Allocate
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 MEMORY MAP
+                 ============================================= -->
+
+            <div class="panel memory-panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <h2>Memory Map</h2>
+                        <p>
+                            Current simulated memory layout.
+                        </p>
+                    </div>
+
+                    <div class="memory-total-label">
+                        <span id="memoryMapTotal">0 MB</span>
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="memoryMap"
+                    class="memory-map"
+                >
+
+                    <div class="empty-state">
+                        <strong>No memory configured</strong>
+                        <span>
+                            Load sample data to begin the simulation.
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PROCESS TABLE
+             ================================================= -->
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h2>Processes</h2>
+                    <p>
+                        Current state of simulated processes.
+                    </p>
+                </div>
+
+                <span
+                    id="processSummary"
+                    class="panel-meta"
+                >
+                    0 processes
+                </span>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>PID</th>
+                            <th>Process</th>
+                            <th>Requested</th>
+                            <th>Allocated</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="processTableBody">
+
+                        <tr>
+                            <td
+                                colspan="6"
+                                class="table-empty"
+                            >
+                                No processes created yet.
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <!-- =================================================
+            ALGORITHM COMPARISON
+            ================================================= -->
+
+        <section class="panel comparison-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h2>Algorithm Comparison</h2>
+
+                    <p>
+                        Run the current workload independently
+                        using all three allocation strategies.
+                    </p>
+                </div>
+
+                <button
+                    id="compareButton"
+                    class="button button-primary"
+                >
+                    Run Comparison
+                </button>
+
+            </div>
+
+
+            <div class="comparison-info">
+
+                <div class="comparison-note">
+                    <strong>How it works</strong>
+
+                    <span>
+                        Each algorithm starts with the same original
+                        memory configuration and process workload.
+                    </span>
+                </div>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table class="comparison-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Allocated</th>
+                            <th>Failed</th>
+                            <th>Utilization</th>
+                            <th>Free Memory</th>
+                            <th>Largest Free Block</th>
+                            <th>Free Partitions</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="comparisonTableBody">
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="table-empty"
+                            >
+                                Run a comparison to see results.
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+                <div
+                    id="comparisonSummary"
+                    class="comparison-summary"
+                >
+                </div>
+
+            </div>
+
+        </section>
+        <!-- =================================================
+             LOWER GRID
+             ================================================= -->
+
+        <section class="lower-grid">
+
+
+            <!-- =============================================
+                 ALLOCATION STEPS
+                 ============================================= -->
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <h2>Allocation Steps</h2>
+                        <p>
+                            See how the selected algorithm made
+                            its decision.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="allocationSteps"
+                    class="steps-container"
+                >
+
+                    <div class="empty-state small">
+                        <span>
+                            Allocation decisions will appear here.
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 SIMULATION STATISTICS
+                 ============================================= -->
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <h2>Fragmentation</h2>
+                        <p>
+                            Memory distribution statistics.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="fragmentation-list">
+
+                    <div class="fragmentation-item">
+
+                        <div>
+                            <span>
+                                Internal Fragmentation
+                            </span>
+
+                            <small>
+                                Unused space inside allocated partitions
+                            </small>
+                        </div>
+
+                        <strong id="internalFragmentation">
+                            0 MB
+                        </strong>
+
+                    </div>
+
+
+                    <div class="fragmentation-item">
+
+                        <div>
+                            <span>
+                                External Fragmentation
+                            </span>
+
+                            <small>
+                                Total free memory in separate holes
+                            </small>
+                        </div>
+
+                        <strong id="externalFragmentation">
+                            0 MB
+                        </strong>
+
+                    </div>
+
+
+                    <div class="fragmentation-item">
+
+                        <div>
+                            <span>
+                                Largest Free Block
+                            </span>
+
+                            <small>
+                                Largest currently available partition
+                            </small>
+                        </div>
+
+                        <strong id="largestFreeBlock">
+                            0 MB
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             ACTIVITY LOG
+             ================================================= -->
+
+        <section class="panel activity-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h2>Activity Log</h2>
+                    <p>
+                        Recent simulation events.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div
+                id="activityLog"
+                class="activity-log"
+            >
+
+                <div class="empty-state small">
+                    <span>
+                        No simulation events yet.
+                    </span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =====================================================
+         NOTIFICATION
+         ===================================================== -->
+
+    <div
+        id="notification"
+        class="notification"
+        role="alert"
+        aria-live="polite"
+    >
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+         ===================================================== -->
+
+    <script src="algorithms.js"></script>
+    <script src="visualization.js"></script>
+    <script src="script.js"></script>
+
+</body>
+
+</html>
