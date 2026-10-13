@@ -40,6 +40,7 @@ function renderMemoryMap() {
             </div>
         `;
 
+        setText("memoryMapTotal", "0 MB");
         updateMemoryMapLegend();
 
         return;
@@ -52,12 +53,18 @@ function renderMemoryMap() {
         const element = document.createElement("div");
 
         element.className = `memory-block ${block.free ? "free" : "allocated"}`;
+        element.dataset.blockId = block.id;
+        element.setAttribute("role", "button");
+        element.setAttribute("tabindex", "0");
+        element.setAttribute("aria-controls", "memoryInspector");
+        element.setAttribute("aria-label", `Block ${block.id} · ${block.free ? "Free" : block.processId} · ${block.size} MB · addresses ${block.startAddress} to ${block.endAddress}`);
+        element.title = `Block ${block.id} · ${block.free ? "FREE" : block.processId + " — " + block.processName} · ${block.size} MB · addresses ${block.startAddress}–${block.endAddress}`;
 
         // The height represents the proportion of memory occupied by this partition.
         const percentage = totalMemory > 0 ? (block.size / totalMemory) * 100 : 0;
 
         // Keep very small blocks visible.
-        const height = Math.max(48, percentage * 3.2);
+        const height = Math.max(42, percentage * 2.0);
 
         element.style.minHeight = `${height}px`;
 
@@ -103,7 +110,7 @@ function renderMemoryMap() {
                         </span>
 
                         <span class="memory-block-size">
-                            ${block.size} MB allocated
+                            ${block.size} MB reserved${simulation.mode === "fixed" ? ` · ${simulation.processes.find(p => p.id === block.processId)?.requestedMemory || 0} MB requested` : ""}
                         </span>
                     </div>
                 </div>
@@ -181,7 +188,7 @@ function renderProcessTable() {
         tableBody.innerHTML = `
             <tr>
                 <td
-                    colspan="6"
+                    colspan="10"
                     class="table-empty"
                 >
                     No processes created yet.
@@ -205,6 +212,7 @@ function renderProcessTable() {
                   : "status-terminated";
 
         const statusText =
+            process.status === "waiting" && process.allocationFailures > 0 ? "Failed / Waiting" :
             process.status.charAt(0).toUpperCase() + process.status.slice(1);
 
         let actions = "";
@@ -213,7 +221,7 @@ function renderProcessTable() {
             actions = `
                 <button
                     class="button button-primary button-small"
-                    onclick="allocateFromTable('${escapeAttribute(process.id)}')"
+                    data-action="allocate"
                 >
                     Allocate
                 </button>
@@ -222,14 +230,14 @@ function renderProcessTable() {
             actions = `
                 <button
                     class="button button-secondary button-small"
-                    onclick="requestMoreFromTable('${escapeAttribute(process.id)}')"
+                    data-action="grow"
                 >
                     Request More
                 </button>
 
                 <button
                     class="button button-danger button-small"
-                    onclick="terminateFromTable('${escapeAttribute(process.id)}')"
+                    data-action="terminate"
                 >
                     Terminate
                 </button>
@@ -277,6 +285,10 @@ function renderProcessTable() {
                 </span>
             </td>
 
+            <td class="mono">${process.status === "allocated" ? process.allocatedMemory - process.requestedMemory : 0} MB</td>
+            <td class="mono">${process.allocationAttempts}</td>
+            <td class="mono">${process.allocationFailures}</td>
+            <td class="lifecycle-cell">Block ${process.blockId ?? "—"}<br>Created ${process.creationStep} · Allocated ${process.allocationStep ?? "—"} · End ${process.terminationStep ?? "—"}</td>
             <td>
                 <div class="action-buttons">
                     ${actions}
@@ -284,6 +296,9 @@ function renderProcessTable() {
             </td>
         `;
 
+        row.querySelector('[data-action="allocate"]')?.addEventListener("click", () => allocateFromTable(process.id));
+        row.querySelector('[data-action="grow"]')?.addEventListener("click", () => requestMoreFromTable(process.id));
+        row.querySelector('[data-action="terminate"]')?.addEventListener("click", () => terminateFromTable(process.id));
         tableBody.appendChild(row);
     }
 
@@ -300,6 +315,7 @@ function renderProcessSelect() {
         return;
     }
 
+    const selectedId = select.value;
     select.innerHTML = `
         <option value="">
             Select process
@@ -319,6 +335,7 @@ function renderProcessSelect() {
 
         select.appendChild(option);
     }
+    select.value = simulation.processes.some(process => process.id === selectedId && process.status === "waiting") ? selectedId : "";
 }
 
 // DASHBOARD
@@ -446,7 +463,7 @@ function renderAllocationSteps(result, requestSize) {
             addStep(
                 container,
                 stepNumber++,
-                `Leftover free space = <strong>${result.leftover} MB</strong>`
+                simulation.mode === "fixed" ? `Internal waste = <strong>${result.leftover} MB</strong> (entire partition reserved)` : `Split block; leftover free space = <strong>${result.leftover} MB</strong>`
             );
         }
 
@@ -505,8 +522,4 @@ function escapeHtml(value) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-}
-
-function escapeAttribute(value) {
-    return String(value).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
