@@ -1,0 +1,49 @@
+{
+  "format": "imas-workload",
+  "version": 1,
+  "mode": "fixed",
+  "initialAlgorithm": "next-fit",
+  "memory": [
+    500,
+    300,
+    100
+  ],
+  "actions": [
+    {
+      "type": "create",
+      "id": "A",
+      "name": "A",
+      "size": 200
+    },
+    {
+      "type": "allocate",
+      "id": "A"
+    },
+    {
+      "type": "create",
+      "id": "B",
+      "name": "B",
+      "size": 200
+    },
+    {
+      "type": "allocate",
+      "id": "B"
+    },
+    {
+      "type": "terminate",
+      "id": "A"
+    },
+    {
+      "type": "create",
+      "id": "C",
+      "name": "C",
+      "size": 200
+    },
+    {
+      "type": "allocate",
+      "id": "C"
+    }
+  ],
+  "scenario": null,
+  "scenarioCursor": 0
+}

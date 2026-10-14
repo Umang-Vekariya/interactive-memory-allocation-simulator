@@ -1,0 +1,122 @@
+[
+  {
+    "page": 1,
+    "title": "Website overview",
+    "screenshotIds": [
+      "F105"
+    ]
+  },
+  {
+    "page": 2,
+    "title": "Try the four allocation strategies",
+    "screenshotIds": [
+      "F01",
+      "F02",
+      "F03",
+      "F04"
+    ]
+  },
+  {
+    "page": 3,
+    "title": "Load and run realistic workloads",
+    "screenshotIds": [
+      "F100",
+      "M01",
+      "M13"
+    ]
+  },
+  {
+    "page": 4,
+    "title": "Same workload, four different layouts",
+    "screenshotIds": [
+      "F55"
+    ]
+  },
+  {
+    "page": 5,
+    "title": "Compare the measured results",
+    "screenshotIds": [
+      "F56"
+    ]
+  },
+  {
+    "page": 6,
+    "title": "Why enough free memory may still be unusable",
+    "screenshotIds": [
+      "F09"
+    ]
+  },
+  {
+    "page": 7,
+    "title": "Compaction: before and after",
+    "screenshotIds": [
+      "F11"
+    ]
+  },
+  {
+    "page": 8,
+    "title": "Retry succeeds after compaction",
+    "screenshotIds": [
+      "F12"
+    ]
+  },
+  {
+    "page": 9,
+    "title": "Next Fit remembers where to search",
+    "screenshotIds": [
+      "F33"
+    ]
+  },
+  {
+    "page": 10,
+    "title": "Fixed partitions reveal internal waste",
+    "screenshotIds": [
+      "F36"
+    ]
+  },
+  {
+    "page": 11,
+    "title": "Growth has limits in both partition modes",
+    "screenshotIds": [
+      "F40",
+      "F38",
+      "F41"
+    ]
+  },
+  {
+    "page": 12,
+    "title": "Watch the allocation decision step by step",
+    "screenshotIds": [
+      "F21",
+      "F22",
+      "F31"
+    ]
+  },
+  {
+    "page": 13,
+    "title": "Save, load and resume your experiment",
+    "screenshotIds": [
+      "F67",
+      "F68"
+    ]
+  },
+  {
+    "page": 14,
+    "title": "Use the website on smaller screens and in both themes",
+    "screenshotIds": [
+      "F106",
+      "F107",
+      "F104",
+      "F105"
+    ]
+  },
+  {
+    "page": 15,
+    "title": "Full coverage summary and validation proof",
+    "screenshotIds": [
+      "F97",
+      "F75",
+      "F71"
+    ]
+  }
+]

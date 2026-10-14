@@ -6,9 +6,10 @@ function clearSimulationViews() {
     resetStepSimulation();
     document.getElementById("stepModeToggle").checked = false;
     document.getElementById("stepControls").classList.add("hidden");
-    document.getElementById("comparisonTableBody").innerHTML = '<tr><td colspan="4" class="table-empty">Run a comparison to see results.</td></tr>';
+    document.getElementById("comparisonTableBody").innerHTML = '<tr><td colspan="5" class="table-empty">Run a comparison to see results.</td></tr>';
     document.getElementById("comparisonSummary").innerHTML = "";
     renderComparisonCharts([]);
+    renderComparisonLayouts([]);
     renderAllocationSteps(null);
 }
 
@@ -73,6 +74,9 @@ function formatAlgorithmName(algorithm) {
 
         case "worst-fit":
             return "Worst Fit";
+
+        case "next-fit":
+            return "Next Fit";
 
         default:
             return algorithm;
@@ -394,6 +398,13 @@ async function handleConfigureMemory() {
         return;
     }
 
+    // Reject unsafe capacities before the engine guard throws or addresses lose precision.
+    if (blocks.some(size => !Number.isSafeInteger(size)) ||
+        !Number.isSafeInteger(blocks.reduce((total, size) => total + size, 0))) {
+        showNotification("Memory sizes and total capacity must be safe whole MB values (up to 9,007,199,254,740,991).", "error");
+        return;
+    }
+
     // Don't accidentally destroy an active simulation.
     if (simulation.processes.length > 0) {
         const confirmed = await confirmSimulationAction(
@@ -528,7 +539,7 @@ function simulateWorkload(initialMemory, workload, algorithmFunction, mode = sim
     }
     const { attempts, successes, failures, searchOperations } = state.metrics;
     return {
-        ...MemoryEngine.statistics(state), successfulAllocations: successes, failedAllocations: failures,
+        ...MemoryEngine.statistics(state), mode: state.mode, nextFitAddress: state.nextFitAddress, successfulAllocations: successes, failedAllocations: failures,
         successRate: attempts ? successes / attempts * 100 : 0,
         searchOperations, averageSearchLength: attempts ? searchOperations / attempts : 0,
         finalMemory: state.memory, finalProcesses: state.processes, events: state.events,
@@ -581,6 +592,7 @@ function renderComparisonResults(results) {
         `<tr><td>${label}</td>${results.map(r => `<td>${suffix === "%" || decimal ? r[key].toFixed(2) : r[key]}${suffix}</td>`).join("")}</tr>`).join("");
     renderComparisonSummary(results);
     renderComparisonCharts(results);
+    renderComparisonLayouts(results);
 }
 
 function renderComparisonSummary(results) {
@@ -624,10 +636,11 @@ function handleStepModeToggle(event) {
 
 function createStepSequence(process, result) {
     const steps = [{ type: "info", text: `${process.id} requests ${process.requestedMemory} MB.` }];
+    if (simulation.algorithm === "next-fit") steps.push({ type: "info", text: `Resume at address ${result.resumeAddress} MB; wrap to address 0 if needed.` });
     for (const block of result.checkedBlocks) steps.push({ type: "check", blockId: block.blockId,
-        text: `Check block ${block.blockId}: ${block.size} MB → ${block.suitable ? "Suitable" : "Too small"}.` });
+        text: `${block.wrapped ? "Wrap around. " : ""}Check block ${block.blockId}: ${block.size} MB → ${block.suitable ? "Suitable" : "Too small"}.` });
     if (result.success) {
-        const reason = { "first-fit": "the first suitable free block; stop searching", "best-fit": "the smallest suitable free block after checking all free blocks", "worst-fit": "the largest suitable free block after checking all free blocks" }[simulation.algorithm];
+        const reason = { "first-fit": "the first suitable free block; stop searching", "best-fit": "the smallest suitable free block after checking all free blocks", "worst-fit": "the largest suitable free block after checking all free blocks", "next-fit": "the first suitable free block from the saved search position, wrapping if needed" }[simulation.algorithm];
         steps.push({ type: "selected", blockId: result.selectedBlockId, text: `Select block ${result.selectedBlockId}: ${reason}.` });
         steps.push({ type: "split", blockId: result.selectedBlockId, text: simulation.mode === "fixed"
             ? `Reserve the entire fixed partition; ${result.leftover} MB internal fragmentation. No split.`
@@ -656,27 +669,7 @@ function startStepSimulation(processId, scenarioAction = false) {
         return;
     }
 
-    let result;
-
-    switch (simulation.algorithm) {
-        case "first-fit":
-            result = firstFit(simulation.memory, process.requestedMemory);
-
-            break;
-
-        case "best-fit":
-            result = bestFit(simulation.memory, process.requestedMemory);
-
-            break;
-
-        case "worst-fit":
-            result = worstFit(simulation.memory, process.requestedMemory);
-
-            break;
-
-        default:
-            return;
-    }
+    const result = MemoryEngine.search(simulation, process.requestedMemory);
 
     simulation.stepSimulation = {
         steps: createStepSequence(process, result),

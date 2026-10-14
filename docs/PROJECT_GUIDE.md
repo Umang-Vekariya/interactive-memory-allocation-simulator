@@ -42,7 +42,7 @@ js/interface/ → refresh map, statistics, tables and explanations
 
 | File | Key entry points | Responsibility |
 | --- | --- | --- |
-| `js/core/algorithms.js` | `firstFit`, `bestFit`, `worstFit` | Selects a free region and returns the examined blocks. These functions choose placement; they do not change memory. |
+| `js/core/algorithms.js` | `firstFit`, `bestFit`, `worstFit`, `nextFit` | Selects a free region and returns the examined blocks. These functions choose placement; they do not change memory. |
 | `js/core/memory-engine.js` | `state`, `initialize`, `allocate`, `terminate`, `grow`, `compact`, `statistics`, `apply` | Maintains state, changes memory safely, computes metrics, records events, and replays lifecycle actions. |
 
 ### Interface: displaying results and providing interactions
@@ -55,9 +55,10 @@ js/interface/ → refresh map, statistics, tables and explanations
 | `js/interface/dialogs.js` | Accessible dialogs for reset, replacing a workload, termination and additional memory requests. |
 | `js/interface/block-inspector.js` | Selected block details, keyboard interaction, in-place growth capacity, and before/after compaction addresses. |
 
+| `js/interface/learning-views.js` | Read-only Next Fit pointer, live metric explanations, and comparison layout snapshots. |
 | `js/interface/overview-demo.js` | Independent 200 MB request example on Overview, using the real algorithms without changing the session. |
 | `js/interface/scenarios.js` | Five predefined workloads, their descriptions, and Next Action / Run Workload controls. |
-| `js/interface/studio-tools.js` | Waiting-process queue and read-only predictions for all three placement strategies. |
+| `js/interface/studio-tools.js` | Waiting-process queue and read-only predictions for all four placement strategies. |
 | `js/interface/lab-features.js` | Guided fragmentation lesson, playback, memory animations, local autosave, JSON import/export, HTML reports and comparison charts. |
 
 ### Verification and supporting material
@@ -81,15 +82,16 @@ js/interface/ → refresh map, statistics, tables and explanations
 
 Address values are simulated MB offsets. For example, a 200 MB block beginning at 0 ends at 199. A process owns one contiguous region.
 
-## The three algorithms
+## The four algorithms
 
 | Strategy | Rule | Search behavior |
 | --- | --- | --- |
 | First Fit | Choose the first free region large enough. | Stops at the first suitable region. |
 | Best Fit | Choose the smallest free region large enough. | Examines every free region. |
 | Worst Fit | Choose the largest free region large enough. | Examines every free region. |
+| Next Fit | Resume at the saved position and choose the next suitable region. | Wraps around once, stopping at the first fit. |
 
-All three have worst-case O(n) search time for n regions with the current list representation. Best Fit is not universally the best: results depend on the request sequence and release pattern. The simulator counts free blocks examined to make the search tradeoff visible.
+All four have worst-case O(n) search time for n regions with the current list representation. Best Fit is not universally the best: results depend on the request sequence and release pattern. The simulator counts free blocks examined to make the search tradeoff visible.
 
 ## Fixed versus variable partitioning
 
@@ -131,3 +133,9 @@ This is an educational contiguous-memory model. It does not implement real OS al
 4. `index.html` and `js/interface/visualization.js`: connect state to the interface.
 5. `js/interface/scenarios.js`: follow an example workload.
 6. Other interface and feature files as needed for the demonstration.
+
+## Next Fit search position
+
+Next Fit starts in the region containing its saved MB address and scans circularly. After a successful Next Fit allocation, the saved address becomes the end of the reserved region plus one (wrapping to zero at the end of memory). A leftover variable hole can therefore be used immediately by the next request; fixed mode resumes at the next partition.
+
+Failed requests, previews, step review, releases, and algorithm switches do not advance the position. An address rather than a list index keeps the position valid when holes merge or blocks split. If merging places it inside a hole, the search considers that whole region. Configuration/reset and compaction reset it to zero. Saved workloads reconstruct the position through replay; each algorithm comparison has its own independent state.

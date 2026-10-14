@@ -111,7 +111,7 @@ test('Independent identical-workload comparison has real search metrics and Best
     createMemory([100,500,200,300,600]); [212,417,112,426].forEach((size,i) => createProcess('P'+i, 'Process '+i, size));
     const before = JSON.stringify(simulation.memory); const results = runAlgorithmComparison();
     assert.equal(JSON.stringify(simulation.memory), before);
-    assert.deepEqual(results.map(r => r.successfulAllocations), [3,4,3]);
+    assert.deepEqual(results.map(r => r.successfulAllocations), [3,4,3,3]);
     assert.ok(results.every(r => r.searchOperations > 0 && r.averageSearchLength > 0));
     assert.equal(recommendAlgorithm(results)[0].key, 'best-fit');
     results[0].finalMemory[0].size = 999; assert.equal(results[1].finalMemory[0].size, 100);
@@ -215,7 +215,7 @@ test('Request preview matches actual algorithm placement without mutating simula
         const snapshot = JSON.stringify(s);
         const preview = inspectRequest(s,212);
         assert.equal(preview.kind,'fits'); assert.equal(preview.suitableCount,3);
-        assert.deepEqual(preview.choices.map(c=>c.blockId),[2,4,5]);
+        assert.deepEqual(preview.choices.map(c=>c.blockId),[2,4,5,2]);
         assert.equal(JSON.stringify(s),snapshot);
         for (const choice of preview.choices) {
             const actual = fresh([100,500,200,300,600],mode,choice.algorithm);
@@ -300,7 +300,7 @@ test('Browser autosave restores workload after refresh and reset saves an empty 
 });
 test('Algorithm changes in a saved session do not override independent comparison strategies', () => {
     createMemory([100,500,200,300,600]); createProcess('X','First',212); allocateProcess('X'); setAlgorithm('worst-fit'); createProcess('Y','Next',417);
-    const results=runAlgorithmComparison(); assert.deepEqual(results.map(r=>r.finalProcesses.find(p=>p.id==='X').blockId),[2,4,5]);
+    const results=runAlgorithmComparison(); assert.deepEqual(results.map(r=>r.finalProcesses.find(p=>p.id==='X').blockId),[2,4,5,2]);
     assert.match(document.getElementById('comparisonCharts').innerHTML,/Free blocks examined/);
 });
 test('Decision cost distinguishes leftover holes from fixed waste and report safely escapes user text', () => {
@@ -340,7 +340,142 @@ test('Block inspection follows compaction addresses and clears removed free bloc
     inspectedBlockId=oldFree; renderMemoryInspector(); assert.equal(inspectedBlockId,null);
     assert.match(document.getElementById('memoryInspector').innerHTML,/Select a segment/);
 });
-test('Deterministic mixed-action stress: memory and partition invariants after 3,000 actions', () => {
+test('Next Fit wraps once and never examines a free region twice on failure', () => {
+    const memory=[{id:1,size:300,free:true},{id:2,size:100,free:false},{id:3,size:150,free:true}];
+    const before=JSON.stringify(memory);
+    const result=nextFit(memory,200,400);
+    assert.equal(result.selectedBlockId,1);
+    assert.deepEqual(result.checkedBlocks.map(b=>b.blockId),[3,1]);
+    assert.equal(result.checkedBlocks[1].wrapped,true);
+    const failed=nextFit(memory,400,400);
+    assert.equal(failed.success,false); assert.equal(failed.checkedBlocks.length,2);
+    assert.equal(new Set(failed.checkedBlocks.map(b=>b.blockId)).size,2);
+    assert.equal(JSON.stringify(memory),before);
+    assert.equal(nextFit([],100,0).success,false);
+});
+test('Fixed Next Fit resumes after the last partition instead of reusing an earlier hole', () => {
+    const s=fresh([300,300,300],'fixed','next-fit');
+    for(const id of ['A','B','C','D']) process(s,id,200);
+    MemoryEngine.allocate(s,'A'); MemoryEngine.allocate(s,'B');
+    assert.equal(s.nextFitAddress,600);
+    MemoryEngine.terminate(s,'A');
+    const c=MemoryEngine.allocate(s,'C'); assert.equal(c.block.startAddress,600);
+    assert.equal(s.nextFitAddress,0);
+    const d=MemoryEngine.allocate(s,'D'); assert.equal(d.block.startAddress,0);
+    assert.equal(MemoryEngine.statistics(s).internalFragmentation,300); invariant(s);
+});
+test('Variable Next Fit uses the leftover hole and failed searches preserve its address', () => {
+    const s=fresh([300,220,500],'variable','next-fit'); process(s,'A',200);
+    MemoryEngine.allocate(s,'A'); assert.equal(s.nextFitAddress,200);
+    process(s,'B',50); const b=MemoryEngine.allocate(s,'B');
+    assert.equal(b.block.startAddress,200); assert.equal(s.nextFitAddress,250);
+    process(s,'TooBig',2000); assert.equal(MemoryEngine.allocate(s,'TooBig').success,false);
+    assert.equal(s.nextFitAddress,250); invariant(s);
+});
+test('Next Fit address remains valid after merging and resets on compaction and configuration', () => {
+    const s=fresh([300,220,500],'variable','next-fit'); process(s,'A',200); MemoryEngine.allocate(s,'A');
+    MemoryEngine.terminate(s,'A'); assert.equal(s.memory.length,1); assert.equal(s.nextFitAddress,200);
+    process(s,'B',100); assert.equal(MemoryEngine.allocate(s,'B').block.startAddress,0);
+    assert.equal(s.nextFitAddress,100);
+    MemoryEngine.compact(s); assert.equal(s.nextFitAddress,0); invariant(s);
+    MemoryEngine.initialize(s,[500]); assert.equal(s.nextFitAddress,0);
+});
+test('Next Fit preview and step review are pure and commit advances the address exactly once', () => {
+    resetSimulation(); createMemory([300,220,500]); setAlgorithm('next-fit');
+    createProcess('A','A',200); allocateProcess('A'); createProcess('B','B',150);
+    const before=JSON.stringify(simulation);
+    const preview=inspectRequest(simulation,150).choices.find(c=>c.algorithm==='next-fit');
+    assert.equal(preview.startAddress,300); assert.equal(preview.resumeAddress,200);
+    assert.equal(JSON.stringify(simulation),before);
+    simulation.stepMode=true; startStepSimulation('B');
+    assert.equal(simulation.nextFitAddress,200);
+    assert.equal(simulation.stepSimulation.algorithmResult.selectedBlockId,preview.blockId);
+    assert.ok(simulation.stepSimulation.steps.some(step=>step.text.includes('Resume at address 200')));
+    handleRunAll(); assert.equal(simulation.nextFitAddress,450);
+    const attempts=simulation.metrics.attempts;
+    handlePreviousStep(); handleRunAll(); assert.equal(simulation.nextFitAddress,450);
+    assert.equal(simulation.metrics.attempts,attempts); invariant(simulation);
+});
+test('Next Fit saved workloads reconstruct their cursor and comparison has independent cursors', () => {
+    const s=fresh([300,300,300],'fixed','next-fit');
+    for(const id of ['A','B','C']) process(s,id,200);
+    MemoryEngine.allocate(s,'A'); MemoryEngine.allocate(s,'B'); MemoryEngine.terminate(s,'A');
+    const saved=serializeWorkload(s); const restored=restoreWorkload(JSON.parse(JSON.stringify(saved)));
+    assert.equal(restored.nextFitAddress,600);
+    assert.equal(MemoryEngine.allocate(restored,'C').block.startAddress,600);
+    const nf=simulateWorkload(s.initialMemory,[...s.workload,{type:'allocate',id:'C'}],nextFit,'fixed');
+    const ff=simulateWorkload(s.initialMemory,[...s.workload,{type:'allocate',id:'C'}],firstFit,'fixed');
+    assert.equal(nf.finalMemory.find(b=>b.processId==='C').startAddress,600);
+    assert.equal(ff.finalMemory.find(b=>b.processId==='C').startAddress,0);
+    assert.equal(s.nextFitAddress,600); invariant(restored);
+});
+test('In-place growth and algorithm switches do not advance the Next Fit search position', () => {
+    for(const mode of ['variable','fixed']) {
+        const s=fresh([300,500],mode,'next-fit'); process(s,'A',100); MemoryEngine.allocate(s,'A');
+        const cursor=s.nextFitAddress;
+        assert.equal(MemoryEngine.grow(s,'A',50).success,true); assert.equal(s.nextFitAddress,cursor);
+        MemoryEngine.apply(s,{type:'algorithm',algorithm:'first-fit'});
+        process(s,'B',100); MemoryEngine.allocate(s,'B');
+        MemoryEngine.apply(s,{type:'algorithm',algorithm:'next-fit'});
+        assert.equal(s.nextFitAddress,cursor); invariant(s);
+    }
+});
+test('Next Fit pointer follows the saved address without changing state and disappears for other algorithms', () => {
+    const s=fresh([300,500],'variable','next-fit'); process(s,'A',100); MemoryEngine.allocate(s,'A');
+    const before=JSON.stringify(s), html=nextFitPointerHtml(s);
+    assert.ok(html.includes('--pointer-position:12.5%')); assert.ok(html.includes('Next Fit · 100 MB'));
+    assert.ok(html.includes('Search starts in block'));
+    assert.equal(JSON.stringify(s),before);
+    s.algorithm='first-fit'; assert.equal(nextFitPointerHtml(s),'');
+    assert.equal(nextFitPointerHtml(MemoryEngine.state()),'');
+    MemoryEngine.compact(s); s.algorithm='next-fit'; assert.ok(nextFitPointerHtml(s).includes('Next Fit · 0 MB'));
+});
+test('Metric explanations use live fixed waste, useful memory and fragmentation values', () => {
+    const fixed=fresh([300,500],'fixed'); process(fixed,'A',200); MemoryEngine.allocate(fixed,'A');
+    const words=explainMemoryMetrics(fixed);
+    assert.ok(words.useful.includes('200 MB actually requested ÷ 800 MB total = 25%'));
+    assert.ok(words.useful.includes('37.5%')); assert.ok(words.internal.includes('100 MB internal waste'));
+    assert.ok(words.external.includes('0 in fixed mode'));
+    const fragmented=explainMemoryMetrics(stressState());
+    assert.ok(fragmented.external.includes('550 MB free − 250 MB largest hole = 300 MB'));
+    assert.ok(fragmented.external.includes('smaller requests'));
+    const empty=memoryMetricsHtml(MemoryEngine.state());
+    assert.ok(empty.includes('Configure memory')); assert.ok(!empty.includes('NaN')); assert.ok(!empty.includes('Infinity'));
+});
+test('Comparison maps show all four independent layouts, consistent process colors and Next Fit pointer', () => {
+    createMemory([100,500,200,300,600]); [212,417,112,426].forEach((size,i)=>createProcess('P'+i,'Process '+i,size));
+    const before=JSON.stringify(simulation.memory), results=runAlgorithmComparison();
+    const html=document.getElementById('comparisonLayouts').innerHTML;
+    assert.equal((html.match(/class="comparison-layout-card"/g)||[]).length,4);
+    assert.ok(html.includes('First Fit')); assert.ok(html.includes('Next Fit'));
+    assert.ok(html.includes('Next Fit · '+results[3].nextFitAddress+' MB'));
+    assert.ok(html.includes('addresses 0 to 99')); assert.ok(html.includes(getProcessColorVar('P0')));
+    assert.ok(results.every(result=>result.totalMemory===1700));
+    assert.equal(JSON.stringify(simulation.memory),before);
+    assert.equal(document.getElementById('comparisonLayoutSection').hidden,false);
+});
+test('Comparison map snapshots stay unchanged after live allocation and are cleared on reset', () => {
+    const before=document.getElementById('comparisonLayouts').innerHTML;
+    const step=simulation.comparisonStep;
+    allocateProcess('P0'); renderApplication();
+    assert.equal(document.getElementById('comparisonLayouts').innerHTML,before);
+    assert.ok(document.getElementById('comparisonLayoutNote').textContent.includes('Live memory has changed'));
+    assert.equal(simulation.comparisonStep,step);
+    resetSimulation(); renderApplication();
+    assert.equal(document.getElementById('comparisonLayouts').innerHTML,'');
+    assert.equal(document.getElementById('comparisonLayoutSection').hidden,true);
+    assert.equal(document.getElementById('studioPointer').innerHTML,'');
+    assert.ok(document.getElementById('overviewMetricHelp').innerHTML.includes('Configure memory'));
+});
+test('Comparison layouts preserve fixed internal waste and escape user-provided text', () => {
+    const actions=[{type:'create',id:'<P>',name:'<script>bad</script>',size:200},{type:'allocate',id:'<P>'}];
+    const result={key:'first-fit',name:'<First>',...simulateWorkload([{size:300},{size:500}],actions,firstFit,'fixed')};
+    const html=comparisonLayoutsHtml([result]);
+    assert.ok(html.includes('comparison-waste')); assert.ok(html.includes('width:33.33333333333333%'));
+    assert.ok(html.includes('100 MB')); assert.ok(html.includes('&lt;P&gt;')); assert.ok(html.includes('&lt;First&gt;'));
+    assert.ok(!html.includes('<script>')); assert.ok(!html.includes('<P>'));
+});
+test('Deterministic mixed-action stress: memory and partition invariants after 4,000 actions', () => {
     let seed=12345; const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
     for (const mode of ['variable','fixed']) for (const algorithm of Object.keys(MemoryEngine.algorithms)) {
         const s=fresh([200,400,300,500],mode,algorithm);

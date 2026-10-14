@@ -4,7 +4,7 @@
 
 ### 1. Introduce the problem — 30 seconds
 
-“Our project is an Interactive Memory Allocation Simulator. It shows how First Fit, Best Fit and Worst Fit place process requests into memory. We can inspect fragmentation, release memory, compact it and compare strategies using the same workload.”
+“Our project is an Interactive Memory Allocation Simulator. It shows how First Fit, Best Fit, Worst Fit and Next Fit place process requests into memory. We can inspect fragmentation, release memory, compact it and compare strategies using the same workload.”
 
 Explain that the app simulates memory; it does not allocate real system RAM.
 
@@ -30,7 +30,7 @@ Say: “Compaction rearranges allocated regions; it does not create extra free m
 
 Load **Algorithm Comparison** in the workload panel, replacing the current workload when prompted. Run comparison on its request sequence: **212, 417, 112, 426 MB**.
 
-For this scenario, Best Fit allocates all four requests; First Fit and Worst Fit allocate three. Show success and search counts. Explain that this example favors Best Fit, while another workload can produce different results.
+For this scenario, Best Fit allocates all four requests; First Fit, Worst Fit, and Next Fit allocate three. Show the four memory layouts and expand their address tables, then show success and search counts. Next Fit’s pointer marks its own saved search position. Explain that this example favors Best Fit, while another workload can produce different results.
 
 ### 5. Show fixed partitions and close — 45 seconds
 
@@ -44,6 +44,7 @@ Finish: “The simulator helps us see the tradeoff between successful placement,
 | --- | --- |
 | What is First Fit? | It selects the first free region that can hold the request. |
 | What is Best Fit? | It selects the smallest suitable free region. |
+| What is Next Fit? | A circular First Fit search that resumes from the last successful Next Fit allocation instead of always starting at the beginning. |
 | What is Worst Fit? | It selects the largest suitable free region. |
 | Is Best Fit always best? | No. The request and release sequence determines the outcome; it may also create small unusable holes. |
 | What is internal fragmentation? | Unused memory inside a reserved allocation, especially a fixed partition. |
@@ -62,8 +63,14 @@ Finish: “The simulator helps us see the tradeoff between successful placement,
 ## Before the demonstration
 
 - Start the server from the root folder and open the app.
-- Run `node tests/simulator.test.js` to verify the 36 checks.
+- Run `node tests/simulator.test.js` to verify the 48 checks.
 - Practice the guided demo once and know that loading it replaces the current workload.
 - Save a workload JSON if you want to retain an existing experiment.
 - For a backup, open `index.html` directly; the simulator works offline.
 - Rerun comparison after changing the workload because displayed results are a snapshot.
+
+## Next Fit search position
+
+Next Fit starts in the region containing its saved MB address and scans circularly. After a successful Next Fit allocation, the saved address becomes the end of the reserved region plus one (wrapping to zero at the end of memory). A leftover variable hole can therefore be used immediately by the next request; fixed mode resumes at the next partition.
+
+Failed requests, previews, step review, releases, and algorithm switches do not advance the position. An address rather than a list index keeps the position valid when holes merge or blocks split. If merging places it inside a hole, the search considers that whole region. Configuration/reset and compaction reset it to zero. Saved workloads reconstruct the position through replay; each algorithm comparison has its own independent state.

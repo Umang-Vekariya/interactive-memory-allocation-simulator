@@ -118,4 +118,5 @@ function renderWorkspaceSummary() {
     setText("studioPayload", `${Number(stats.payloadUtilization.toFixed(1))}% useful utilization`);
     setText("studioWaste", `${stats.internalFragmentation} MB internal waste`);
     document.getElementById("studioCapacity").innerHTML = capacity.innerHTML.replaceAll('<span aria-label=', '<span role="button" tabindex="0" aria-pressed="false" aria-controls="memoryInspector" aria-label=');
+    renderLearningViews();
 }

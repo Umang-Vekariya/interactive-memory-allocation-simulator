@@ -1,6 +1,6 @@
 # Interactive Memory Allocation Simulator
 
-A frontend-only Operating Systems simulator. No installation, backend, database, account, or network dependency is required. The Interactive Memory Allocation Simulator workspace pairs the existing First Fit, Best Fit, and Worst Fit algorithms with a navy sidebar, neutral slate surfaces, and blue accents. A responsive sidebar organizes Overview, Simulation studio, Processes, Compare algorithms, Memory insights, and Activity log. Light and dark themes persist locally. The studio uses a compact configuration toolbar, process controls beside the memory layout, an allocation trace, live capacity metrics, and a proportional address-space overview.
+A frontend-only Operating Systems simulator. No installation, backend, database, account, or network dependency is required. The Interactive Memory Allocation Simulator workspace pairs the existing First Fit, Best Fit, Worst Fit, and Next Fit algorithms with a navy sidebar, neutral slate surfaces, and blue accents. A responsive sidebar organizes Overview, Simulation studio, Processes, Compare algorithms, Memory insights, and Activity log. Light and dark themes persist locally. The studio uses a compact configuration toolbar, process controls beside the memory layout, an allocation trace, live capacity metrics, and a proportional address-space overview.
 
 ## Run
 
@@ -19,8 +19,8 @@ Open http://localhost:8001. You can also open `index.html` directly for an offli
 3. Inspect the failure diagnostic, process attempts/failures, event history, and three charts.
 4. Click **Compact Memory**. Free memory stays 550 MB, the largest hole becomes 550 MB, and external fragmentation becomes 0 MB. Two allocated processes move toward address 0.
 5. Allocate P6. Its second attempt succeeds; its previous failure remains in lifecycle history.
-6. Run comparison to replay the same lifecycle, including compaction and retry, on three independent states.
-7. Reset, load **Algorithm Comparison**, and compare its classic 212, 417, 112, 426 MB workload. Best Fit allocates all four; First Fit and Worst Fit allocate three. Enable step mode to inspect each free block and the selection rationale.
+6. Run comparison to replay the same lifecycle, including compaction and retry, on four independent states.
+7. Reset, load **Algorithm Comparison**, and compare its classic 212, 417, 112, 426 MB workload. Best Fit allocates all four; First Fit, Worst Fit, and Next Fit allocate three. Enable step mode to inspect each free block and the selection rationale.
 8. Switch to **Fixed Partitioning**, configure `300, 500`, create a 200 MB process, and allocate it using First Fit. It reserves 300 MB and wastes 100 MB internally. Request 50 MB more: the reserved size stays 300 MB and internal waste falls to 50 MB.
 
 ## Playback, guided demo, and reports
@@ -103,8 +103,22 @@ Scenario Next Action runs one lifecycle action. With step mode enabled, scenario
 node tests/simulator.test.js
 ```
 
-The 36 regression tests cover the three placement algorithms, splitting, release/merge, insufficient-memory and external-fragmentation failures, compaction/retry, identical independent comparisons, fixed internal waste, growth, lifecycle replay, chart sample data, live overview synchronization, read-only predictions against actual allocations, request feasibility and waiting-queue synchronization, and reset rendering, step navigation and single commits, preview cancellation, scenario step mode, invalid input, zero-denominator statistics, guided lesson states and invalidation, pause/resume and single commits, workload replay/validation/autosave, escaped report output, live block growth capacity, immutable compaction snapshots and address movements, every scenario/algorithm/mode combination, and memory invariants after 3,000 deterministic mixed actions.
+The 48 regression tests cover the four placement algorithms, splitting, release/merge, insufficient-memory and external-fragmentation failures, compaction/retry, identical independent comparisons, fixed internal waste, growth, lifecycle replay, chart sample data, live overview synchronization, read-only predictions against actual allocations, request feasibility and waiting-queue synchronization, and reset rendering, step navigation and single commits, preview cancellation, scenario step mode, invalid input, zero-denominator statistics, guided lesson states and invalidation, pause/resume and single commits, workload replay/validation/autosave, escaped report output, live block growth capacity, immutable compaction snapshots and address movements, every scenario/algorithm/mode combination, and memory invariants after 4,000 deterministic mixed actions.
 
 Browser checks cover creation/configuration, fixed reservation and growth, growth failure diagnostics, termination, clean reset, sample loading, Best Fit search highlighting, Previous/Next/Run All, comparison/recommendation, the fragmentation scenario, compaction/retry, and chart rendering. Page dialogs support Cancel and Escape; no native alert/prompt is required.
 
 Responsive browser checks confirmed no page overflow at 390, 768, and 1366 px. At 390 px, populated process and comparison tables scroll inside their panels. The final standalone demo completed with no application console errors.
+
+## Next Fit search position
+
+Next Fit starts in the region containing its saved MB address and scans circularly. After a successful Next Fit allocation, the saved address becomes the end of the reserved region plus one (wrapping to zero at the end of memory). A leftover variable hole can therefore be used immediately by the next request; fixed mode resumes at the next partition.
+
+Failed requests, previews, step review, releases, and algorithm switches do not advance the position. An address rather than a list index keeps the position valid when holes merge or blocks split. If merging places it inside a hole, the search considers that whole region. Configuration/reset and compaction reset it to zero. Saved workloads reconstruct the position through replay; each algorithm comparison has its own independent state.
+
+## Read-only learning views
+
+The saved Next Fit address appears beneath the proportional map when Next Fit is active. The marker shows where scanning resumes; it does not promise the next allocation will fit that region. Allocated regions are skipped and the search wraps as needed.
+
+**Compare algorithms** displays four maps on the same scale, consistent process colors, internal-waste overlays, and expandable address tables. They describe the comparison snapshot rather than the live state. A later live action marks the comparison stale; configuration/reset clears it. Next Fit has its own pointer in its comparison card.
+
+Expandable explanations on Overview and in the studio show useful utilization, internal waste and external fragmentation using the current numbers. Memory insights displays the same explanations. The wording distinguishes fragmented free space from memory reserved but unused inside a process.

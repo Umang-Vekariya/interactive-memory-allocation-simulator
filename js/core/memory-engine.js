@@ -1,11 +1,11 @@
 // Shared local engine: interactive actions and comparison runs use identical transitions.
 const MemoryEngine = {
-    algorithms: { "first-fit": firstFit, "best-fit": bestFit, "worst-fit": worstFit },
+    algorithms: { "first-fit": firstFit, "best-fit": bestFit, "worst-fit": worstFit, "next-fit": nextFit },
 
     state(mode = "variable") {
         return {
             totalMemory: 0, memory: [], initialMemory: [], processes: [], algorithm: "first-fit",
-            mode, initialAlgorithm: "first-fit", lastDecision: null, guide: null, events: [], step: 0, nextBlockId: 1, analytics: [], workload: [],
+            mode, nextFitAddress: 0, initialAlgorithm: "first-fit", lastDecision: null, guide: null, events: [], step: 0, nextBlockId: 1, analytics: [], workload: [],
             metrics: { attempts: 0, successes: 0, failures: 0, searchOperations: 0 },
             compactionCount: 0, lastFailure: null, lastCompaction: null, comparisonResults: [],
             scenario: null, scenarioCursor: 0, scenarioPending: false, stepMode: false,
@@ -131,12 +131,17 @@ const MemoryEngine = {
         return { success: false, message: state.lastFailure.reason, diagnostic: state.lastFailure, algorithmResult: result };
     },
 
+    // Pure search shared by allocation, previews and the step-by-step explanation.
+    search(state, size, algorithm = state.algorithm) {
+        return this.algorithms[algorithm](state.memory, size, state.nextFitAddress);
+    },
+
     allocate(state, id, record = true) {
         const process = state.processes.find(p => p.id === id);
         if (!process || process.status !== "waiting")
             return { success: false, message: "Only a waiting process can be allocated." };
         if (record) state.workload.push({ type: "allocate", id });
-        const result = this.algorithms[state.algorithm](state.memory, process.requestedMemory);
+        const result = this.search(state, process.requestedMemory);
         this.attempt(state, process, result);
         state.lastDecision = { processId: id, success: result.success, searches: result.checkedBlocks.length, remaining: result.leftover, mode: state.mode };
         if (!result.success) return this.failure(state, process, result, process.requestedMemory);
@@ -150,6 +155,7 @@ const MemoryEngine = {
         state.metrics.successes++;
         state.lastFailure = null;
         this.addresses(state);
+        if (state.algorithm === "next-fit") state.nextFitAddress = (block.endAddress + 1) % state.totalMemory;
         this.event(state, `${id} allocated ${capacity} MB for ${process.requestedMemory} MB using ${formatAlgorithmName(state.algorithm)}; examined ${result.checkedBlocks.length} free blocks.`);
         return { success: true, process, block, algorithmResult: result };
     },
@@ -222,6 +228,8 @@ const MemoryEngine = {
         if (before.freeMemory) state.memory.push(this.freeBlock(state, before.freeMemory));
         this.addresses(state);
         const moved = state.memory.filter(b => !b.free && oldAddresses.get(b.id) !== b.startAddress).length;
+        // Relocation invalidates the old search position; start a fresh circular scan.
+        state.nextFitAddress = 0;
         state.compactionCount++;
         const after = this.statistics(state);
         state.lastCompaction = { before, after, beforeLayout, afterLayout: state.memory.map(block => ({ ...block })), moved, step: state.step + 1 };

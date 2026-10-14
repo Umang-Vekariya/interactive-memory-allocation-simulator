@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#2563eb"><title>Interactive Memory Allocation Simulator</title><link rel="stylesheet" href="css/style.css?v=23"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#2563eb"><title>Interactive Memory Allocation Simulator</title><link rel="stylesheet" href="css/style.css?v=25"></head>
 <body><svg class="icon-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="icon-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol><symbol id="icon-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="3"/><path d="M9 2v4m6-4v4M9 18v4m6-4v4M2 9h4m-4 6h4m12-6h4m-4 6h4"/><rect x="9" y="9" width="6" height="6" rx="1"/></symbol><symbol id="icon-layers" viewBox="0 0 24 24"><path d="m12 3 10 5-10 5L2 8l10-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></symbol><symbol id="icon-compare" viewBox="0 0 24 24"><path d="M5 4v16M12 9v11M19 2v18M2 20h20"/></symbol><symbol id="icon-chart" viewBox="0 0 24 24"><path d="M3 3v18h18M6 15l5-5 4 3 6-8"/></symbol><symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="icon-book" viewBox="0 0 24 24"><path d="M12 5v16M12 5C8 2 5 3 2 4v15c3-1 6-2 10 2 4-4 7-3 10-2V4c-3-1-6-2-10 1Z"/></symbol><symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol><symbol id="icon-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8V4Z"/></symbol><symbol id="icon-moon" viewBox="0 0 24 24"><path d="M20 14A9 9 0 0 1 10 4a9 9 0 1 0 10 10Z"/></symbol><symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol><symbol id="icon-reset" viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></symbol><symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol><symbol id="icon-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol><symbol id="icon-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/></symbol></defs></svg>
 <a class="skip-link" href="#mainContent">Skip to content</a>
 <aside class="sidebar" id="sidebar" aria-label="Main navigation"><a class="brand" href="#overview" data-navigate="overview"><span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#icon-chip"></use></svg></span><div><strong>Interactive Memory<br>Allocation Simulator</strong><span>Memory, made clear.</span></div></a>
@@ -12,7 +12,7 @@
 <section class="page" data-page="overview" id="overviewPage">
 <section class="overview-intro" aria-labelledby="introTitle">
     <div class="intro-copy"><span class="intro-kicker">OPERATING SYSTEMS · IN A FEW SECONDS</span><h2 id="introTitle">How does a process find room in memory?</h2><p>Explore how an OS allocates memory, why gaps and waste appear, and how different strategies change the result.</p><a class="text-link" href="#simulator" data-navigate="simulator">Try your own workload <svg class="icon" aria-hidden="true"><use href="#icon-arrow"></use></svg></a></div>
-    <div class="intro-example"><div class="intro-example-heading"><span>Try a <strong>200 MB</strong> request</span><span class="intro-example-tag">Mini example</span></div><div class="intro-strategies" role="group" aria-label="Mini example allocation strategy"><button type="button" data-intro-algorithm="first-fit" aria-pressed="true">First Fit</button><button type="button" data-intro-algorithm="best-fit" aria-pressed="false">Best Fit</button><button type="button" data-intro-algorithm="worst-fit" aria-pressed="false">Worst Fit</button></div><div id="introMemory" class="intro-memory" aria-label="Three separate free memory holes"></div><p id="introResult" class="intro-result" role="status" aria-live="polite"></p><div class="intro-legend"><span><i class="intro-used-dot"></i>New process</span><span><i></i>Free space</span><span>Independent example</span></div></div>
+    <div class="intro-example"><div class="intro-example-heading"><span>Try a <strong>200 MB</strong> request</span><span class="intro-example-tag">Mini example</span></div><div class="intro-strategies" role="group" aria-label="Mini example allocation strategy"><button type="button" data-intro-algorithm="first-fit" aria-pressed="true">First Fit</button><button type="button" data-intro-algorithm="best-fit" aria-pressed="false">Best Fit</button><button type="button" data-intro-algorithm="worst-fit" aria-pressed="false">Worst Fit</button><button type="button" data-intro-algorithm="next-fit" aria-pressed="false">Next Fit</button></div><div id="introMemory" class="intro-memory" aria-label="Three separate free memory holes"></div><p id="introResult" class="intro-result" role="status" aria-live="polite"></p><div class="intro-legend"><span><i class="intro-used-dot"></i>New process</span><span><i></i>Free space</span><span>Independent example</span></div></div>
 </section>
 
 <div class="overview-toolbar"><div><span class="subtle-tag" id="overviewMode">Variable partitions</span><span class="overview-context" id="overviewMemoryStatus">Ready for your workload</span></div><div class="overview-actions"><a class="button button-secondary button-small" href="#comparison" data-navigate="comparison">Compare algorithms</a><a class="button button-primary button-small" href="#simulator" data-navigate="simulator">Open simulation studio <svg class="icon" aria-hidden="true"><use href="#icon-arrow"></use></svg></a></div></div>
@@ -51,14 +51,15 @@
         </section>
 
 
+<details class="metrics-help"><summary>What do these numbers mean?</summary><div id="overviewMetricHelp" class="metric-explanations"></div></details>
 <div class="overview-grid"><section class="panel overview-health"><div class="panel-header"><div class="title-with-icon"><span class="icon-tile"><svg class="icon" aria-hidden="true"><use href="#icon-layers"></use></svg></span><div><h2>Memory layout</h2><p>Physical address space · segments are proportional to size.</p></div></div><span class="subtle-tag" id="overviewAlgorithm">First Fit</span></div>
-<div class="health-content"><div class="overview-map-caption"><span>ADDRESS SPACE</span><span id="overviewAddressEnd">0 MB</span></div><div class="capacity-track" id="overviewCapacity" aria-label="Current memory distribution"></div><div class="capacity-legend"><span><i class="legend-dot used"></i>Allocated <strong id="overviewAllocated">0 MB</strong></span><span><i class="legend-dot"></i>Free <strong id="overviewFree">0 MB</strong></span></div>
+<div class="health-content"><div class="overview-map-caption"><span>ADDRESS SPACE</span><span id="overviewAddressEnd">0 MB</span></div><div class="capacity-track" id="overviewCapacity" aria-label="Current memory distribution"></div><div id="overviewPointer" class="pointer-slot"></div><div class="capacity-legend"><span><i class="legend-dot used"></i>Allocated <strong id="overviewAllocated">0 MB</strong></span><span><i class="legend-dot"></i>Free <strong id="overviewFree">0 MB</strong></span></div>
 <div class="overview-regions" id="overviewRegions" aria-label="Memory regions"></div><div class="overview-facts"><div><span>Processes in memory</span><strong id="overviewProcessCount">0</strong></div><div><span>Largest free block</span><strong id="overviewLargest">0 MB</strong></div><div><span>External fragmentation</span><strong id="overviewExternal">0 MB</strong></div></div></div>
 <div class="panel-footer"><span id="overviewNextHint">Create a process to begin your first allocation.</span><a href="#simulator" data-navigate="simulator">Open studio <svg class="icon" aria-hidden="true"><use href="#icon-arrow"></use></svg></a></div></section>
 <section class="panel quick-guide"><div class="panel-header"><div><h2>Explore the simulation</h2><p>Choose what you want to inspect.</p></div><svg class="icon" aria-hidden="true"><use href="#icon-spark"></use></svg></div><div class="guide-steps">
 <a href="#simulator" data-navigate="simulator"><span class="guide-number">01</span><div><strong>Allocate a process</strong><span>Create requests and watch each placement.</span></div><svg class="icon" aria-hidden="true"><use href="#icon-arrow"></use></svg></a>
 <a href="#analytics" data-navigate="analytics"><span class="guide-number">02</span><div><strong>Inspect fragmentation</strong><span>Track free holes and memory waste.</span></div><svg class="icon" aria-hidden="true"><use href="#icon-arrow"></use></svg></a>
-<a href="#comparison" data-navigate="comparison"><span class="guide-number">03</span><div><strong>Compare strategies</strong><span>First Fit, Best Fit, and Worst Fit.</span></div><svg class="icon" aria-hidden="true"><use href="#icon-arrow"></use></svg></a></div></section></div><section class="panel project-team" aria-labelledby="projectTeamTitle"><div class="panel-header"><div><h2 id="projectTeamTitle">Project team</h2><p>Interactive Memory Allocation Simulator · Operating Systems Project</p></div></div><ul class="team-members"><li><span class="team-avatar" aria-hidden="true">UV</span><strong>Umang Vekariya</strong></li><li><span class="team-avatar" aria-hidden="true">SD</span><strong>Sarthak Dhawale</strong></li><li><span class="team-avatar" aria-hidden="true">AK</span><strong>Aditya Khunt</strong></li></ul></section></section><section class="page" data-page="simulator" id="simulatorPage" hidden>
+<a href="#comparison" data-navigate="comparison"><span class="guide-number">03</span><div><strong>Compare strategies</strong><span>First Fit, Best Fit, Worst Fit, and Next Fit.</span></div><svg class="icon" aria-hidden="true"><use href="#icon-arrow"></use></svg></a></div></section></div><section class="panel project-team" aria-labelledby="projectTeamTitle"><div class="panel-header"><div><h2 id="projectTeamTitle">Project team</h2><p>Interactive Memory Allocation Simulator · Operating Systems Project</p></div></div><ul class="team-members"><li><span class="team-avatar" aria-hidden="true">UV</span><strong>Umang Vekariya</strong></li><li><span class="team-avatar" aria-hidden="true">SD</span><strong>Sarthak Dhawale</strong></li><li><span class="team-avatar" aria-hidden="true">AK</span><strong>Aditya Khunt</strong></li></ul></section></section><section class="page" data-page="simulator" id="simulatorPage" hidden>
 <section class="guided-demo"><div><div class="guide-title-row"><h2 id="guidedTitle">Guided fragmentation demo</h2><span id="guidedProgress"></span></div><p id="guidedExplanation">Follow allocation, release, failure, compaction, and a successful retry.</p></div><div class="guide-actions"><button id="startGuidedButton" class="button button-secondary button-small">Start guided demo</button><button id="guidedNextButton" class="button button-primary button-small" hidden>Next stage</button></div></section>
 <div class="session-toolbar"><span id="sessionStatus">Autosave is local to this browser.</span><div><button id="saveWorkloadButton" class="button button-secondary button-small">Save workload</button><button id="loadWorkloadButton" class="button button-secondary button-small">Load workload</button><button id="exportReportButton" class="button button-secondary button-small">Export report</button><input id="workloadFile" type="file" accept=".json,application/json" hidden></div></div>
 <section class="control-bar">
@@ -73,6 +74,7 @@
                 <option value="first-fit">First Fit</option>
                 <option value="best-fit">Best Fit</option>
                 <option value="worst-fit">Worst Fit</option>
+                <option value="next-fit">Next Fit</option>
             </select>
 
         </div>
@@ -324,7 +326,7 @@
                 </div>
 
 <div class="studio-metrics"><div><span>Reserved</span><strong id="studioAllocated">0 MB</strong></div><div><span>Available</span><strong id="studioFree">0 MB</strong></div><div><span>Largest hole</span><strong id="studioLargest">0 MB</strong></div><div><span>Utilization</span><strong id="studioUtilization">0%</strong></div></div>
-<div class="payload-breakdown"><span id="studioPayload">0% useful utilization</span><span id="studioWaste">0 MB internal waste</span></div><div class="address-overview"><div class="address-labels"><span>ADDRESS SPACE</span><span id="studioStep">Step 1</span></div><div id="studioCapacity" class="studio-capacity" aria-label="Proportional memory overview"></div><p class="map-scale-note">Segment widths show reserved size. Hatched space inside an allocated segment is internal waste.</p><div class="address-labels"><span>0 MB</span><span id="studioEndAddress">0 MB</span></div></div>
+<div class="payload-breakdown"><span id="studioPayload">0% useful utilization</span><span id="studioWaste">0 MB internal waste</span></div><details class="metrics-help studio-metrics-help"><summary>Useful memory, waste, and fragmentation explained</summary><div id="studioMetricHelp" class="metric-explanations"></div></details><div class="address-overview"><div class="address-labels"><span>ADDRESS SPACE</span><span id="studioStep">Step 1</span></div><div id="studioCapacity" class="studio-capacity" aria-label="Proportional memory overview"></div><div id="studioPointer" class="pointer-slot"></div><p class="map-scale-note">Segment widths show reserved size. Hatched space inside an allocated segment is internal waste.</p><div class="address-labels"><span>0 MB</span><span id="studioEndAddress">0 MB</span></div></div>
 <section id="memoryInspector" class="memory-inspector" aria-label="Selected memory block details"></section><details id="memoryDetails" class="memory-details"><summary>Detailed partitions &amp; addresses</summary><div class="map-column-labels"><span>Start</span><span>Partition / owner</span><span>End</span></div>
                 <div
                     id="memoryMap"
@@ -344,7 +346,7 @@
                     id="memoryMapLegend"
                     class="memory-map-legend"
                     style="display: none;"
-                ></div></details><section class="request-inspector" aria-labelledby="requestInspectorTitle"><div class="inspector-heading"><div><h3 id="requestInspectorTitle">Request preview</h3><p>Compare the next placement across all three algorithms.</p></div><div class="preview-size"><label for="previewRequest">Request (MB)</label><input id="previewRequest" type="number" min="1" step="1" value="212"></div></div><p id="previewContext" class="preview-context"></p><p id="requestFeasibility" class="request-feasibility" aria-live="polite"></p><div id="requestChoices" class="request-choices"></div></section>
+                ></div></details><section class="request-inspector" aria-labelledby="requestInspectorTitle"><div class="inspector-heading"><div><h3 id="requestInspectorTitle">Request preview</h3><p>Compare the next placement across all four algorithms.</p></div><div class="preview-size"><label for="previewRequest">Request (MB)</label><input id="previewRequest" type="number" min="1" step="1" value="212"></div></div><p id="previewContext" class="preview-context"></p><p id="requestFeasibility" class="request-feasibility" aria-live="polite"></p><div id="requestChoices" class="request-choices"></div></section>
 
             </div>
 
@@ -454,7 +456,7 @@
 
         </section>
 
-        </section><section class="page" data-page="comparison" id="comparisonPage" hidden><section class="workspace-intro comparison-intro"><div class="intro-icon"><svg class="icon" aria-hidden="true"><use href="#icon-compare"></use></svg></div><div><h2>Three strategies. One fair comparison.</h2><p>First Fit, Best Fit, and Worst Fit start with identical memory and lifecycle actions.</p></div></section><div id="comparisonCharts" class="comparison-charts"></div><section class="panel comparison-panel">
+        </section><section class="page" data-page="comparison" id="comparisonPage" hidden><section class="workspace-intro comparison-intro"><div class="intro-icon"><svg class="icon" aria-hidden="true"><use href="#icon-compare"></use></svg></div><div><h2>Four strategies. One fair comparison.</h2><p>First Fit, Best Fit, Worst Fit, and Next Fit start with identical memory and lifecycle actions.</p></div></section><section id="comparisonLayoutSection" class="comparison-layout-section" aria-labelledby="comparisonLayoutTitle" hidden><div class="comparison-layout-heading"><h2 id="comparisonLayoutTitle">Same workload. Four memory layouts.</h2><p id="comparisonLayoutNote"></p></div><div id="comparisonLayouts" class="comparison-layout-grid"></div><p class="comparison-layout-legend">Process colors stay consistent across algorithms. Striped regions are free; hatching within a process shows internal waste. Maps are comparison snapshots.</p></section><div id="comparisonCharts" class="comparison-charts"></div><section class="panel comparison-panel">
 
             <div class="panel-header">
 
@@ -463,7 +465,7 @@
 
                     <p>
                         Run the current workload independently
-                        using all three allocation strategies.
+                        using all four allocation strategies.
                     </p>
                 </div>
 
@@ -496,7 +498,7 @@
                     <thead>
 
                         <tr>
-                            <th>Metric</th><th>First Fit</th><th>Best Fit</th><th>Worst Fit</th>
+                            <th>Metric</th><th>First Fit</th><th>Best Fit</th><th>Worst Fit</th><th>Next Fit</th>
                         </tr>
 
                     </thead>
@@ -506,7 +508,7 @@
                         <tr>
 
                             <td
-                                colspan="4"
+                                colspan="5"
                                 class="table-empty"
                             >
                                 Run a comparison to see results.
@@ -598,7 +600,7 @@
                     <div class="fragmentation-item"><div><span>Total Wasted Memory</span><small>Internal waste + external fragmentation</small></div><strong id="wastedMemory">0 MB</strong></div>
                     <div class="fragmentation-item"><div><span>Compactions</span><small>Successful variable-memory compactions</small></div><strong id="compactionCount">0</strong></div>
                 </div>
-                <p id="fragmentationExplanation" class="panel-copy"></p>
+                <p id="fragmentationExplanation" class="panel-copy"></p><div id="analyticsMetricHelp" class="metric-explanations analytics-metric-help"></div>
             </section><section class="panel analytics-panel">
             <div class="panel-header"><div><h2>Real-time Analytics</h2><p>One sample per simulation event. All graphs reset with memory configuration.</p></div></div>
             <div class="analytics-grid">
@@ -636,7 +638,7 @@
         </section>
 
     </section><section class="page" data-page="guide" id="guidePage" hidden><section class="panel guide-panel"><div class="panel-header"><div><h2>Small decisions. Different outcomes.</h2><p>The memory model behind your simulation.</p></div></div><div class="reference-grid">
-<article><span class="reference-number">01</span><h3>Choose a strategy</h3><p><strong>First Fit</strong> stops at the first free block that fits. <strong>Best Fit</strong> chooses the smallest suitable block. <strong>Worst Fit</strong> chooses the largest.</p></article>
+<article><span class="reference-number">01</span><h3>Choose a strategy</h3><p><strong>First Fit</strong> stops at the first free block that fits. <strong>Best Fit</strong> chooses the smallest suitable block. <strong>Worst Fit</strong> chooses the largest. <strong>Next Fit</strong> resumes from its saved search position and wraps around.</p></article>
 <article><span class="reference-number">02</span><h3>Know your partitions</h3><p><strong>Variable partitions</strong> split blocks to match a request. <strong>Fixed partitions</strong> reserve an entire region, leaving unused space inside it.</p></article>
 <article><span class="reference-number">03</span><h3>Understand fragmentation</h3><p>External fragmentation = free memory − largest free block. Internal fragmentation = reserved memory − requested memory in allocated processes.</p></article>
 <article><span class="reference-number">04</span><h3>Make memory contiguous</h3><p>Compaction moves allocated processes together and combines free space. It preserves total free memory and is available in variable mode.</p></article>
@@ -652,21 +654,23 @@
     </dialog>
 
 <!-- Load core logic first. UI and features define helpers; app.js starts the app last. -->
-<script src="js/core/algorithms.js?v=23"></script>
-<script src="js/core/memory-engine.js?v=23"></script>
+<script src="js/core/algorithms.js?v=25"></script>
+<script src="js/core/memory-engine.js?v=25"></script>
 
 <!-- Presentation and interactive feature helpers (preserve this dependency order). -->
-<script src="js/interface/visualization.js?v=23"></script>
-<script src="js/interface/dialogs.js?v=23"></script>
-<script src="js/interface/scenarios.js?v=23"></script>
-<script src="js/interface/analytics.js?v=23"></script>
-<script src="js/interface/studio-tools.js?v=23"></script>
-<script src="js/interface/workspace.js?v=23"></script>
-<script src="js/interface/block-inspector.js?v=23"></script>
-<script src="js/interface/lab-features.js?v=23"></script>
+<script src="js/interface/visualization.js?v=25"></script>
+<script src="js/interface/dialogs.js?v=25"></script>
+<script src="js/interface/scenarios.js?v=25"></script>
+<script src="js/interface/analytics.js?v=25"></script>
+<script src="js/interface/studio-tools.js?v=25"></script>
+<script src="js/interface/workspace.js?v=25"></script>
+<script src="js/interface/block-inspector.js?v=25"></script>
+<script src="js/interface/lab-features.js?v=25"></script>
 
-<script src="js/interface/overview-demo.js?v=23"></script>
+<script src="js/interface/overview-demo.js?v=25"></script>
+
+<script src="js/interface/learning-views.js?v=25"></script>
 
 <!-- Application controller and startup. -->
-<script src="js/app.js?v=23"></script>
+<script src="js/app.js?v=25"></script>
 </body></html>

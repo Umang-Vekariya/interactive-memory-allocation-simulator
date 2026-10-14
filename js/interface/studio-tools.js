@@ -2,12 +2,12 @@
 function inspectRequest(state, size) {
     if (!Number.isSafeInteger(size) || size <= 0) return { kind: "invalid", choices: [] };
     const stats = MemoryEngine.statistics(state);
-    const choices = Object.entries(MemoryEngine.algorithms).map(([algorithm, place]) => {
-        const result = place(state.memory, size);
+    const choices = Object.keys(MemoryEngine.algorithms).map(algorithm => {
+        const result = MemoryEngine.search(state, size, algorithm);
         const block = state.memory.find(block => block.id === result.selectedBlockId);
         return { algorithm, success: result.success, blockId: block?.id ?? null,
             startAddress: block?.startAddress ?? null, size: block?.size ?? 0,
-            remaining: block ? block.size - size : 0, searches: result.checkedBlocks.length };
+            remaining: block ? block.size - size : 0, searches: result.checkedBlocks.length, resumeAddress: result.resumeAddress };
     });
     const kind = !state.totalMemory ? "unconfigured" : choices.some(choice => choice.success)
         ? "fits" : MemoryEngine.analyzeFailure(state, size).kind;
@@ -66,5 +66,5 @@ function renderRequestInspector() {
     document.getElementById("requestChoices").innerHTML = ["invalid", "unconfigured"].includes(result.kind) ? "" : result.choices.map(choice =>
         `<div class="request-choice${choice.algorithm === simulation.algorithm ? " current" : ""}"><div><strong>${formatAlgorithmName(choice.algorithm)}</strong>${choice.algorithm === simulation.algorithm ? '<span class="choice-active">Active</span>' : ""}</div>
         <p>${choice.success ? `Block ${choice.blockId} · ${choice.size} MB` : "No suitable block"}</p>
-        <span>${choice.success ? `${choice.remaining} MB ${simulation.mode === "fixed" ? "internal waste" : "leftover hole"} · ` : ""}${choice.searches} free ${choice.searches === 1 ? "block" : "blocks"} checked</span></div>`).join("");
+        <span>${choice.success ? `${choice.remaining} MB ${simulation.mode === "fixed" ? "internal waste" : "leftover hole"} · ` : ""}${choice.algorithm === "next-fit" ? `Resume at ${choice.resumeAddress} MB · ` : ""}${choice.searches} free ${choice.searches === 1 ? "block" : "blocks"} checked</span></div>`).join("");
 }

@@ -2,11 +2,35 @@
 
 **An interactive Operating Systems project for understanding contiguous memory allocation.**
 
-See how **First Fit, Best Fit, and Worst Fit** place processes in memory. Follow each decision, discover why a request can fail despite available space, and use compaction to turn scattered holes into usable memory.
+See how **First Fit, Best Fit, Worst Fit, and Next Fit** place processes in memory. Follow each decision, discover why a request can fail despite available space, and use compaction to turn scattered holes into usable memory.
 
 Built by **Umang Vekariya · Sarthak Dhawale · Aditya Khunt** using HTML, CSS, and JavaScript.
 
 [Quick start](#quick-start) · [Features](#features) · [Try-a-demo](#try-a-demo) · [Project structure](#project-structure) · [Documentation](#documentation)
+
+## Live demo
+
+[Open the Interactive Memory Allocation Simulator](https://umang-vekariya.github.io/interactive-memory-allocation-simulator/)
+
+Hosted on GitHub Pages. Updates pushed to this repository's `main` branch publish automatically.
+
+## Preview
+
+### Overview
+
+![Overview with interactive allocation introduction](docs/images/overview.jpg)
+
+### Fragmentation example
+
+![A 400 MB request fails with 550 MB free but only a 250 MB largest hole](docs/images/fragmentation.jpg)
+
+These screenshots are from earlier demonstration sessions. The current version also includes Next Fit, its visible search pointer, live metric explanations, and four comparison maps.
+
+### Four-strategy comparison
+
+![Engine-generated comparison of the same workload across all four algorithms](docs/images/algorithm-comparison.svg)
+
+This diagram is generated from the current memory engine, rather than captured from the browser. The app provides the same proportional layouts with expandable address tables on **Compare algorithms**.
 
 ## What this project demonstrates
 
@@ -20,13 +44,15 @@ This simulator makes those decisions visible through a proportional memory map, 
 
 | Feature | What you can explore |
 | --- | --- |
-| Three allocation strategies | First Fit, Best Fit, and Worst Fit, including the free regions each strategy examines. |
+| Four allocation strategies | First Fit, Best Fit, Worst Fit, and Next Fit, including the free regions each strategy examines. |
 | Fixed and variable partitions | Whole-partition reservation versus splitting free regions to match requests. |
 | Process lifecycle | Create, allocate, grow, and release simulated processes. |
+| Visible Next Fit pointer | Shows the saved resume address on the live memory map and in its comparison snapshot. |
+| Live metric explanations | Explains useful utilization, internal waste, and external fragmentation with your current values. |
 | Interactive memory map | Inspect addresses, reserved size, requested size, waste, and growth capacity. |
 | Fragmentation and compaction | See scattered free space, merge adjacent holes, and compare addresses before and after compaction. |
 | Step mode and playback | Walk through a placement decision, pause, review, and change playback speed. |
-| Workload comparison | Replay the same actions on independent states and compare success, utilization, fragmentation, and search effort. |
+| Workload comparison | Replay the same actions on independent states and compare four proportional memory maps, address tables, success, utilization, fragmentation, and search effort. |
 | Guided demos and scenarios | Follow a fragmentation lesson or experiment with five predefined workloads. |
 | Request preview | Predict where a request would go under each strategy without allocating it. |
 | Local saves and reports | Restore committed actions after refresh, import/export JSON workloads, and export a printable HTML report. |
@@ -74,7 +100,7 @@ Inspect the failure record and compaction address changes to explain why the res
 
 ### Compare placement strategies
 
-Load the **Algorithm Comparison** scenario and run comparison. For its request sequence of **212, 417, 112, and 426 MB**, Best Fit places all four requests, while First Fit and Worst Fit place three.
+Load the **Algorithm Comparison** scenario and run comparison. For its request sequence of **212, 417, 112, and 426 MB**, Best Fit places all four requests, while First Fit, Worst Fit, and Next Fit place three.
 
 This example favors Best Fit; it does not mean Best Fit always wins. Different request sizes and release patterns can produce different outcomes.
 
@@ -89,8 +115,9 @@ Choose **Fixed Partitioning**, configure partitions of **300 and 500 MB**, and a
 | First Fit | First free region large enough for the request. |
 | Best Fit | Smallest free region large enough for the request. |
 | Worst Fit | Largest free region large enough for the request. |
+| Next Fit | First suitable region from its saved search position, wrapping to the beginning if needed. |
 
-All three have worst-case **O(n)** search time with the current region-list representation. First Fit can stop early; Best Fit and Worst Fit examine all free regions.
+All four have worst-case **O(n)** search time with the current region-list representation. First Fit and Next Fit can stop early; Best Fit and Worst Fit examine all free regions.
 
 | Metric | Definition |
 | --- | --- |
@@ -115,7 +142,7 @@ memory-allocation-simulator/
 ├── js/
 │   ├── app.js                    # Startup, controls, step mode, and comparison
 │   ├── core/
-│   │   ├── algorithms.js         # First Fit, Best Fit, and Worst Fit
+│   │   ├── algorithms.js         # First Fit, Best Fit, Worst Fit, and Next Fit
 │   │   └── memory-engine.js      # State, lifecycle, addresses, and statistics
 │   └── interface/
 │       ├── visualization.js      # Memory blocks, tables, history, and steps
@@ -126,10 +153,15 @@ memory-allocation-simulator/
 │       ├── scenarios.js          # Predefined workload controls
 │       ├── studio-tools.js       # Waiting queue and request predictions
 │       ├── lab-features.js       # Playback, saves, import/export, and reports
+│       ├── learning-views.js     # Next Fit pointer, metric explanations, comparison maps
 │       └── overview-demo.js      # Independent introductory allocation example
 ├── docs/
 │   ├── PROJECT_GUIDE.md          # Architecture, file map, and core concepts
 │   ├── PRESENTATION.md           # Demo script and viva preparation
+│   ├── images/                   # README screenshots and comparison diagram
+│   ├── presentation/             # Editable PowerPoint presentation
+│   ├── report/                   # Formal documentation in Word and PDF
+│   ├── demo/                     # Browser proof PDF, screenshots, and result files
 │   └── TECHNICAL_REFERENCE.md    # Detailed model behavior and formulas
 └── tests/
     ├── simulator.test.js         # Automated regression suite
@@ -157,7 +189,7 @@ From the project root:
 node tests/simulator.test.js
 ```
 
-The suite contains **36 regression checks**, including **3,000 deterministic mixed operations** checking memory invariants. Coverage includes algorithm selection, splitting, merging, growth, fixed-partition waste, failure diagnostics, compaction, workload replay, independent comparison, preview behavior, and single-commit step playback.
+The suite contains **48 regression checks**, including **4,000 deterministic mixed operations** checking memory invariants. Coverage includes algorithm selection, splitting, merging, growth, fixed-partition waste, failure diagnostics, compaction, workload replay, independent comparison, preview behavior, and single-commit step playback.
 
 For visual checks while the server is running:
 
@@ -175,6 +207,10 @@ Use **Save workload** to download JSON and **Load workload** to validate and rep
 - **[Project guide](docs/PROJECT_GUIDE.md):** understand each file, the architecture, data model, and reading order.
 - **[Presentation walkthrough](docs/PRESENTATION.md):** demonstrate the project in five minutes and prepare for viva questions.
 - **[Technical reference](docs/TECHNICAL_REFERENCE.md):** inspect formulas, partition assumptions, comparison scoring, and advanced features.
+- **[PowerPoint presentation](docs/presentation/Interactive-Memory-Allocation-Simulator.pptx):** editable slides with speaker notes.
+- **[Formal project report (PDF)](docs/report/Interactive-Memory-Allocation-Simulator-Documentation.pdf)** and **[editable Word copy](docs/report/Interactive-Memory-Allocation-Simulator-Documentation.docx):** complete project documentation and viva preparation.
+- **[Browser demo and proof (PDF)](docs/demo/Interactive-Memory-Allocation-Simulator-Browser-Proof.pdf):** 15 A4 landscape pages, mainly website screenshots with short captions, plus a summary of all 40 built-in combinations. The separate evidence archive retains all 150 original captures.
+- **[Evidence files and reproduction guide](docs/demo/README.md):** full-size screenshots, recorded results, coverage CSV, saved workload, and exported report.
 
 ## Scope
 
@@ -189,3 +225,9 @@ Paging, virtual memory, swapping, CPU scheduling, and real kernel operations are
 - **Aditya Khunt**
 
 Developed as an **Operating Systems project**.
+
+## Next Fit search position
+
+Next Fit starts in the region containing its saved MB address and scans circularly. After a successful Next Fit allocation, the saved address becomes the end of the reserved region plus one (wrapping to zero at the end of memory). A leftover variable hole can therefore be used immediately by the next request; fixed mode resumes at the next partition.
+
+Failed requests, previews, step review, releases, and algorithm switches do not advance the position. An address rather than a list index keeps the position valid when holes merge or blocks split. If merging places it inside a hole, the search considers that whole region. Configuration/reset and compaction reset it to zero. Saved workloads reconstruct the position through replay; each algorithm comparison has its own independent state.
