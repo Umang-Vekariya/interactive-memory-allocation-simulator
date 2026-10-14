@@ -1,5 +1,30 @@
 # Presentation walkthrough
 
+## The 14-slide presentation
+
+Allow about **8–10 minutes**, plus an optional live demonstration. Presenter notes in the PowerPoint explain each example and the measured results.
+
+| Slide | Topic | What to explain |
+| --- | --- | --- |
+| 1 | Introduction | Project title and team members. |
+| 2 | Allocation problem | A process needs one suitable contiguous region. |
+| 3 | Aim and scope | Placement, fragmentation, recovery and fair comparison. |
+| 4 | Partition modes | A 200 MB request reserves 300 MB in fixed mode but only 200 MB in variable mode. |
+| 5 | Four algorithms | First, Best, Worst and circular Next Fit selection rules. |
+| 6 | Worked placement example | Show which region each algorithm selects for the same request. |
+| 7 | Process lifecycle | Create, allocate, grow and release a process. |
+| 8 | Fragmentation | Distinguish waste inside allocations from separate free holes. |
+| 9 | Failed request | 550 MB total free cannot satisfy a 400 MB request when the largest hole is 250 MB. |
+| 10 | Compaction and retry | Compaction preserves total free memory, creates a 550 MB hole and permits the retry. |
+| 11 | Comparison results | Best Fit serves 4 requests; the others serve 3 on this workload. Search counts measure examined free regions, not elapsed time. |
+| 12 | Implementation workflow | Controller → engine → placement strategy → state and interface. |
+| 13 | Testing and limitations | Explain the verification evidence and the simplified contiguous-memory model. |
+| 14 | Conclusions | State the three concrete findings, then invite questions or open the live demo. |
+
+The comparison starts with regions **100, 500, 200, 300 and 600 MB**, then requests **212, 417, 112 and 426 MB**. Outcomes depend on the workload; Best Fit is not universally best.
+
+[Open the live simulator](https://umang-vekariya.github.io/interactive-memory-allocation-simulator/).
+
 ## A five-minute explanation
 
 ### 1. Introduce the problem — 30 seconds
@@ -62,7 +87,7 @@ Finish: “The simulator helps us see the tradeoff between successful placement,
 
 ## Before the demonstration
 
-- Start the server from the root folder and open the app.
+- Open the live site, or start a local server from the root folder and open the app.
 - Run `node tests/simulator.test.js` to verify the 48 checks.
 - Practice the guided demo once and know that loading it replaces the current workload.
 - Save a workload JSON if you want to retain an existing experiment.
