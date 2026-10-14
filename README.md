@@ -67,8 +67,8 @@ Overview also includes a small independent **200 MB request example**. Switch st
 Clone the repository and enter its folder:
 
 ```sh
-git clone https://github.com/sarthak-dhawale/memory-allocation-simulator.git
-cd memory-allocation-simulator
+git clone https://github.com/Umang-Vekariya/interactive-memory-allocation-simulator.git
+cd interactive-memory-allocation-simulator
 ```
 
 Serve the files with Python 3:
@@ -129,7 +129,16 @@ All four have worst-case **O(n)** search time with the current region-list repre
 
 In variable mode, allocation splits a hole, release coalesces adjacent holes, and compaction relocates allocated regions to combine free space. In fixed mode, partition boundaries remain unchanged, and compaction is disabled.
 
-Comparisons use separate states with identical starting memory and lifecycle actions. Their recommendation score is a project-specific weighted metric; its formula is documented in the [technical reference](docs/TECHNICAL_REFERENCE.md).
+Comparisons use separate states with identical starting memory and lifecycle actions. The recommendation score is a project-specific metric, not a universal ranking:
+
+```text
+0.65 × success rate
++ 0.15 × useful utilization
++ 0.15 × (100 − external fragmentation ratio)
++ 5 × (1 − searches / max(maximum searches across algorithms, 1))
+```
+
+Rates and ratios use percentages; searches count examined free regions, not elapsed time.
 
 ## Project structure
 
@@ -156,17 +165,12 @@ memory-allocation-simulator/
 │       ├── learning-views.js     # Next Fit pointer, metric explanations, comparison maps
 │       └── overview-demo.js      # Independent introductory allocation example
 ├── docs/
-│   ├── PROJECT_GUIDE.md          # Architecture, file map, and core concepts
-│   ├── PRESENTATION.md           # Demo script and viva preparation
-│   ├── images/                   # README screenshots and comparison diagram
-│   ├── presentation/             # Editable PowerPoint presentation
-│   ├── report/                   # Formal documentation in Word and PDF
-│   ├── demo/                     # Browser proof PDF, screenshots, and result files
-│   └── TECHNICAL_REFERENCE.md    # Detailed model behavior and formulas
+│   ├── images/                   # Images used by this README
+│   ├── presentation/             # Final editable PowerPoint with presenter notes
+│   ├── report/                   # Final documentation in Word and PDF
+│   └── demo/                     # Final 15-page browser proof PDF and README
 └── tests/
-    ├── simulator.test.js         # Automated regression suite
-    ├── responsive.html           # Phone, tablet, and laptop preview
-    └── design-preview.html       # Desktop preview
+    └── simulator.test.js         # Automated regression checks
 ```
 
 ### How the parts connect
@@ -191,11 +195,6 @@ node tests/simulator.test.js
 
 The suite contains **48 regression checks**, including **4,000 deterministic mixed operations** checking memory invariants. Coverage includes algorithm selection, splitting, merging, growth, fixed-partition waste, failure diagnostics, compaction, workload replay, independent comparison, preview behavior, and single-commit step playback.
 
-For visual checks while the server is running:
-
-- [Responsive preview](http://127.0.0.1:8001/tests/responsive.html): the real app at phone, tablet, and laptop widths.
-- [Desktop preview](http://127.0.0.1:8001/tests/design-preview.html): the real app in a desktop frame.
-
 ## Saved sessions and reports
 
 Committed actions and configuration autosave locally in the browser. Refresh reconstructs the session by replaying them. Unfinished previews and playback reset, and comparison results should be rerun after loading or changing a workload.
@@ -204,13 +203,11 @@ Use **Save workload** to download JSON and **Load workload** to validate and rep
 
 ## Documentation
 
-- **[Project guide](docs/PROJECT_GUIDE.md):** understand each file, the architecture, data model, and reading order.
-- **[Presentation walkthrough](docs/PRESENTATION.md):** demonstrate the project in five minutes and prepare for viva questions.
-- **[Technical reference](docs/TECHNICAL_REFERENCE.md):** inspect formulas, partition assumptions, comparison scoring, and advanced features.
-- **[PowerPoint presentation](docs/presentation/Interactive-Memory-Allocation-Simulator.pptx):** editable slides with speaker notes.
-- **[Formal project report (PDF)](docs/report/Interactive-Memory-Allocation-Simulator-Documentation.pdf)** and **[editable Word copy](docs/report/Interactive-Memory-Allocation-Simulator-Documentation.docx):** complete project documentation and viva preparation.
-- **[Browser demo and proof (PDF)](docs/demo/Interactive-Memory-Allocation-Simulator-Browser-Proof.pdf):** 15 A4 landscape pages, mainly website screenshots with short captions, plus a summary of all 40 built-in combinations. The separate evidence archive retains all 150 original captures.
-- **[Evidence files and reproduction guide](docs/demo/README.md):** full-size screenshots, recorded results, coverage CSV, saved workload, and exported report.
+- **[PowerPoint presentation](docs/presentation/Interactive-Memory-Allocation-Simulator.pptx):** 14 slides with presenter notes; allow about 8–10 minutes.
+- **[Project report (PDF)](docs/report/Interactive-Memory-Allocation-Simulator-Documentation.pdf)** and **[editable Word copy](docs/report/Interactive-Memory-Allocation-Simulator-Documentation.docx):** formal documentation and viva preparation.
+- **[Browser proof (PDF)](docs/demo/Interactive-Memory-Allocation-Simulator-Browser-Proof.pdf):** 15 A4 landscape pages with website screenshots and a summary of 40 built-in scenario combinations.
+
+Only `index.html`, `css/`, and `js/` are required to run the simulator. `docs/` contains submission material; `tests/` contains optional verification. `.nojekyll` supports GitHub Pages hosting, while `.gitignore` keeps local clutter out of version control.
 
 ## Scope
 
